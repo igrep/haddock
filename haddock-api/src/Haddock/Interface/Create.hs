@@ -885,7 +885,18 @@ mkTokenizedSrc :: ModSummary -> RenamedSource -> IO [RichToken]
 mkTokenizedSrc ms src =
     Hyperlinker.enrich src . Hyperlinker.parse <$> rawSrc
   where
-    rawSrc = readFile $ msHsFilePath ms
+    rawSrc = do
+      putStrLn "rawSrc: Before readFile"
+      let path = msHsFilePath ms
+      putStrLn $ "rawSrc: reading: " ++ path
+      inspect "rawSrc: After readFile" $ readFile $ path
+
+
+inspect s a = do
+  r <- a
+  putStrLn s
+  putStrLn $ show $ length r
+  return r
 
 -- | Find a stand-alone documentation comment by its name.
 findNamedDoc :: String -> [HsDecl Name] -> ErrMsgM (Maybe HsDocString)
