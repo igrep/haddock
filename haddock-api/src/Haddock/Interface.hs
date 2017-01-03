@@ -48,6 +48,7 @@ import qualified Data.Set as Set
 import Distribution.Verbosity
 import System.Directory
 import System.FilePath
+import System.IO
 import Text.Printf
 
 import Digraph
@@ -56,6 +57,8 @@ import Exception
 import GHC hiding (verbosity)
 import HscTypes
 import FastString (unpackFS)
+
+import MonadUtils (liftIO)
 
 -- | Create 'Interface's and a link environment by typechecking the list of
 -- modules using the GHC API and processing the resulting syntax trees.
@@ -162,10 +165,19 @@ createIfaces verbosity flags instIfaceMap mods = do
         Nothing    -> (ifaces, ifaceMap) -- Boot modules don't generate ifaces.
 
 
+inspect s a = do
+  r <- a
+  liftIO $ putStrLn s
+  return r
+
+
 processModule :: Verbosity -> ModSummary -> [Flag] -> IfaceMap -> InstIfaceMap -> Ghc (Maybe Interface)
 processModule verbosity modsum flags modMap instIfaceMap = do
   out verbosity verbose $ "Checking module " ++ moduleString (ms_mod modsum) ++ "..."
-  tm <- loadModule =<< typecheckModule =<< parseModule modsum
+  liftIO $ putStrLn "Before parseModule"
+  liftIO $ print =<< hGetEncoding stderr
+  tm <- inspect "loadModule" $ loadModule =<< (inspect "typecheckModule" $ typecheckModule =<< inspect "parseModule" (parseModule modsum))
+  liftIO $ putStrLn "After loadModule"
   if not $ isBootSummary modsum then do
     out verbosity verbose "Creating interface..."
     (interface, msg) <- runWriterGhc $ createInterface tm flags modMap instIfaceMap
