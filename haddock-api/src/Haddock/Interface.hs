@@ -176,6 +176,7 @@ processModule verbosity modsum flags modMap instIfaceMap = do
   out verbosity verbose $ "Checking module " ++ moduleString (ms_mod modsum) ++ "..."
   liftIO $ putStrLn "Before parseModule"
   liftIO $ print =<< hGetEncoding stderr
+  liftIO $ hSetEncoding stderr utf8
   tm <- inspect "loadModule" $ loadModule =<< (inspect "typecheckModule" $ typecheckModule =<< inspect "parseModule" (parseModule modsum))
   liftIO $ putStrLn "After loadModule"
   if not $ isBootSummary modsum then do
