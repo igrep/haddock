@@ -36,6 +36,7 @@ import Control.Arrow (second)
 import Control.DeepSeq
 import Control.Monad
 import Data.Function (on)
+import System.IO
 
 import qualified Packages
 import qualified Module
@@ -889,7 +890,14 @@ mkTokenizedSrc ms src =
       putStrLn "rawSrc: Before readFile"
       let path = msHsFilePath ms
       putStrLn $ "rawSrc: reading: " ++ path
-      inspect "rawSrc: After readFile" $ readFile $ path
+      inspect "rawSrc: After readFile" $ readFileUtf8 $ path
+
+
+readFileUtf8 :: FilePath -> IO String
+readFileUtf8 name = do
+  h <- openFile name ReadMode
+  hSetEncoding h utf8
+  hGetContents h
 
 
 inspect s a = do
